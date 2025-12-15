@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ program_name }}</title>
+    <!-- Leaflet.js CSS for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0; /* Remove default margin */
+            overscroll-behavior: none; /* Prevents "pull-to-refresh" and bounce effects */
+        }
+        h1, h2 {
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000; /* Ensure logo is on top of map controls */
+        }
+        .logo-container img {
+            width: 180px;
+            height: auto;
+        }
+        /* Full-screen map section */
+        .map-section {
+            position: relative;
+            height: 100vh; /* Make it full viewport height */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .map-overlay {
+            position: relative;
+            z-index: 10; /* Ensure text is on top of the map */
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+        .map-overlay h1 {
+            font-size: 4em;
+            border-bottom: none;
+            margin-bottom: 20px;
+        }
+        .scroll-down {
+            color: white;
+            font-size: 1.5em;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        .container {
+            display: flex;
+            padding: 40px 20px; /* Add padding for the content area */
+            gap: 20px;
+        }
+        .main-content, .sidebar {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .main-content {
+            flex-grow: 1;
+        }
+        .sidebar {
+            width: 350px;
+            flex-shrink: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #30363d;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #21262d;
+            color: #8b949e;
+        }
+        tr:nth-child(even) {
+            background-color: #1a2028;
+        }
+        a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .ip-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Place map behind the overlay */
+            touch-action: none; /* Prevents browser handling of touch events, making zoom smoother */
+        }
+        /* Custom pulsating marker style */
+        .pulsating-marker {
+            width: 15px;
+            height: 15px;
+            background-color: #0f0; /* Bright green */
+            border-radius: 50%;
+            border: 1px solid #fff;
+            box-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+            animation: pulse 1.5s infinite ease-out;
+        }
+        /* Keyframe animation for the pulse effect */
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+        }
+        /* Custom style for the ACTIVE pulsating marker */
+        .pulsating-marker-active {
+            width: 18px; /* Slightly larger to stand out */
+            height: 18px;
+            background-color: #f00; /* Bright Red */
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px #f00, 0 0 25px #f00, 0 0 40px #f00;
+            animation: pulse-active 1.2s infinite ease-out;
+        }
+        /* Keyframe animation for the active marker */
+        @keyframes pulse-active {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.9);
+                opacity: 0.8;
+            }
+        }
+        /* Custom style for the popups */
+        .hacker-popup .leaflet-popup-content-wrapper {
+            background: rgba(10, 10, 10, 0.9); /* Semi-transparent black */
+            color: #0f0; /* Green text */
+            border: 1px solid #0f0;
+            border-radius: 0;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+        }
+        .hacker-popup .leaflet-popup-tip {
+            background: #0f0;
+        }
+        .hacker-popup a {
+            color: #58a6ff; /* Link color */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='logo/logo.png') }}" alt="JUTT CYBER TECH Logo">
+    </div>
+    <div class="map-section">
+        <div id="map"></div>
+        <div class="map-overlay">
+            <!-- The title was here -->
+        </div>
+    </div>
+
+    <!-- Leaflet.js for the map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet MarkerCluster -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script>
+        // Initialize the map and set its view to a global perspective
+        // Added updateWhenIdle to improve zoom/pan performance.
+        // It waits until the map movement is finished before loading new tiles.
+        var map = L.map('map', {
+            updateWhenIdle: true,
+            worldCopyJump: true // Prevents markers from disappearing when panning across the date line
+        }).setView([20, 0], 2);
+
+        // --- Define Base Map Layers ---
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxNativeZoom: 18, // Esri imagery is sharpest up to level 18
+            maxZoom: 20 // Allow zooming beyond native resolution
+        });
+
+        // Create a layer for labels and borders to overlay on the satellite map
+        var labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        });
+
+        var darkModeLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxNativeZoom: 19,
+            maxZoom: 20
+        });
+
+        var streetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxNativeZoom: 19,
+            maxZoom: 20,
+        });
+
+        // Group the satellite and labels layers to create a "Hybrid" map
+        var hybridLayer = L.layerGroup([satelliteLayer, labelsLayer]);
+
+        // Set the default layer
+        darkModeLayer.addTo(map);
+
+        // --- Layer Control ---
+        var baseMaps = {
+            "Hybrid Satellite": hybridLayer,
+            "Dark Mode": darkModeLayer,
+            "Street Map": streetMapLayer
+        };
+
+        L.control.layers(baseMaps).addTo(map);
+
+        // Create a marker cluster group
+        var markers = L.markerClusterGroup();
+
+        // Get the IP history data from Flask
+        var ipHistory = {{ server_data_history | tojson }};
+
+        // Variable to hold the circle layer
+        var radiusCircle;
+
+        // Variable to hold the polyline layer
+        var polyline;
+
+        // Variable to hold the currently active marker
+        var activeMarker = null;
+
+        // Array to hold the coordinates for the connecting line
+        var latlngs = [];
+
+        // Define the two types of icons we will use
+        const activeIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div class='pulsating-marker-active'></div>",
+            iconSize: [18, 18],
+        });
+        const inactiveIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div class='pulsating-marker'></div>",
+            iconSize: [15, 15],
+        });
+
+        function addIpToMap(ipData, isActive) {
+            if (ipData.lat && ipData.lon) {
+                var latlng = [ipData.lat, ipData.lon];
+                latlngs.push(latlng); // Add coordinate for the line
+
+                // If a new marker is being added as active, deactivate the old one
+                if (isActive && activeMarker) {
+                    activeMarker.setIcon(inactiveIcon);
+                }
+
+                // Choose the icon based on whether the node is active
+                const currentIcon = isActive ? activeIcon : inactiveIcon;
+                var marker = L.marker(latlng, { icon: currentIcon });
+
+                // If this marker is active, store it
+                if (isActive) {
+                    activeMarker = marker;
+                }
+
+                // Add a popup to the marker
+                marker.bindPopup(`<b>IP:</b> ${ipData.query}<br><b>ISP:</b> ${ipData.isp}<br><b>Location:</b> ${ipData.city}, ${ipData.country}<br><br><a href="/node/${ipData.query}" target="_blank">View Full Details</a>`, { className: 'hacker-popup' });
+
+                // Add a click event to draw the circle
+                marker.on('click', function(e) {
+                    if (radiusCircle) {
+                        map.removeLayer(radiusCircle);
+                    }
+                    radiusCircle = L.circle(e.latlng, {
+                        radius: 10000, // 10,000 meters = 10km
+                        color: '#0f0',      // Green line
+                        fillColor: '#0f0',   // Green fill
+                        fillOpacity: 0.15
+                    }).addTo(map);
+                });
+
+                // Pan the map to the new marker
+                markers.addLayer(marker);
+
+                // Pan the map to the new marker
+                map.panTo(latlng);
+            }
+        }
+
+        function updatePolyline() {
+            // If the polyline already exists, remove it
+            if (polyline) {
+                map.removeLayer(polyline);
+            }
+            // Draw a new line with all the points
+            if (latlngs.length > 1) {
+                polyline = L.polyline(latlngs, {
+                    color: '#00ffff', // Bright cyan color
+                    weight: 2,
+                    opacity: 0.7
+                }).addTo(map);
+            }
+        }
+
+        // Process initial IP history
+        ipHistory.forEach(function(ipData, index) {
+            const isActive = (index === ipHistory.length - 1);
+            addIpToMap(ipData, isActive);
+        });
+        updatePolyline();
+        map.addLayer(markers);
+
+        // Set up Server-Sent Events to listen for real-time updates
+        const eventSource = new EventSource("/stream");
+
+        eventSource.onmessage = function(event) {
+            console.log("New active IP received:", event.data);
+            const newIpData = JSON.parse(event.data);
+            addIpToMap(newIpData, true); // Add the new IP as the active one
+            updatePolyline();            // Redraw the line
+        };
+    </script>
+</body>
+</html>

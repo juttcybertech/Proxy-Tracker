@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Details: {{ ip_address }}</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background-color: #000; color: #0f0; }
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; background-color: #0a0a0a; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); border: 1px solid #0f0; }
+        h1 { color: #0f0; text-shadow: 0 0 5px #0f0, 0 0 10px #0f0; word-wrap: break-word; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 8px; text-align: left; border: 1px solid #0f0; }
+        th { background-color: #050; color: #0f0; text-transform: uppercase; }
+        p { color: #f00; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>[+] NODE_DATA // {{ ip_address }}</h1>
+        {% if node_data %}
+            <table>
+                {% for key, value in node_data.items() %}
+                <tr>
+                    <th>{{ key|title }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>ERROR: NO CACHED DATA FOUND FOR THIS IP.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
