@@ -50,7 +50,7 @@ To run this application, you will need Python, Go, and Rust installed on your sy
 
 ```bash
 git clone https://github.com/juttcybertech/Proxy-Tracker.git
-cd proxy-tracker
+cd Proxy-Tracker
 ```
 
 ### 2. Install Python Dependencies
