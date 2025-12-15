@@ -84,7 +84,7 @@ The first time you run this, Cargo will download and compile dependencies, which
 Open a **third new terminal** and navigate back to the root `proxy-tracker` directory:
 
 ```bash
-python app.py
+python proxytracker.py
 ```
 
 The terminal will display a custom banner and a startup sequence, including the URL where the application is running (e.g., `http://127.0.0.1:5555`).
