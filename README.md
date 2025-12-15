@@ -2,9 +2,9 @@
 
 ## Overview
 
-**Proxy Tracker** is a sophisticated, multi-language application designed to monitor your public IP address in real-time, visualize its geolocation on an interactive map, and perform advanced analysis using high-performance microservices written in Go and Rust. Built with anonymity in mind, all collected data is temporary and stored only in memory.
+**Proxy Tracker** is a sophisticated application designed to monitor your public IP address in real-time, visualize its geolocation on an interactive map, and perform advanced analysis using high-performance microservices. Built with anonymity in mind, all collected data is temporary and stored only in memory.
 
-This project showcases a polyglot microservice architecture, where a central Python Flask application orchestrates specialized tasks performed by Go and Rust services, providing a robust and extensible system.
+This project utilizes a microservice architecture, where a central Python Flask application orchestrates specialized tasks performed by dedicated Go and Rust services, providing a robust and extensible system.
 
 ## Features
 
